@@ -1,0 +1,16 @@
+# virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Mac
+.DS_Store
+
+# editor settings
+.vscode/
+.idea/
+
+# local database (if you use SQLite)
+*.db
