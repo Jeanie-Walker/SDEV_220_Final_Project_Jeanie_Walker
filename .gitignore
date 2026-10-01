@@ -17,3 +17,6 @@ __pycache__/
 
 # random
 test_window.py
+
+# secrets
+.env
