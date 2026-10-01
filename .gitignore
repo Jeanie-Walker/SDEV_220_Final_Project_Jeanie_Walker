@@ -14,3 +14,6 @@ __pycache__/
 
 # local database (if you use SQLite)
 *.db
+
+# random
+test_window.py
