@@ -31,3 +31,9 @@ class Report:
 
     def add_item(self, category, description, urgency):
         self.items.append((category, description, urgency))
+
+    def items_by_urgency(self):
+        groups = {1: [], 2: [], 3: []}
+        for item in self.items:
+            groups[item[2]].append(item)
+        return groups
