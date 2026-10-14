@@ -1,11 +1,11 @@
-import sqlite3
+from datetime import datetime
+from django.core.management.base import BaseCommand
+from django.utils import timezone
+from handoff.models import Nurse, Patient, Shift, Report
 
-conn = sqlite3.connect("next_shift.db")
-cur = conn.cursor()
-cur.execute("PRAGMA foreign_keys = ON")
 
 # insert into nurses
-nurses = [
+NURSES = [
     ("Francis Smith", "RN"),
     ("Alex Walls", "LPN"),
     ("Pilar Flores", "RN"),
@@ -16,25 +16,15 @@ nurses = [
     ("Ayesha Johnson", "RN"),
 ]
 
-cur.executemany(
-    "INSERT INTO nurses (name, credential) VALUES (?, ?)",
-    nurses,
-)
-
 # insert into patients
-patients = [
+PATIENTS = [
     ("Linda Williams", "Total assist", "Incontinent of B&B", "Enteral feeds, NPO", "DNR", "NKA"),
     ("Sherry Banks", "Mod assist", "Incontinent of bladder", "Mech soft NAS", "Full Code", "Statins"),
     ("Bethany Carter", "Mod(toileting, bathing, mobility) min(eating)", "Continent", "Regular", "Full Code", "Penicillin")
 ]
 
-cur.executemany(
-    "INSERT INTO patients (name, adls, continence, diet, code_status, allergies) VALUES (?, ?, ?, ?, ?, ?)", 
-    patients,
-)
-
 # insert into shifts
-shifts = [
+SHIFTS = [
     (1, 1, "Mon", "day"),
     (1, 1, "Tue", "day"),
     (1, 1, "Wed", "day"),
@@ -58,25 +48,15 @@ shifts = [
     (8, 3, "Sun", "night")
 ]
 
-cur.executemany(
-    "INSERT INTO shifts(nurse_id, patient_id, day, shift_type) VALUES (?, ?, ?, ?)",
-    shifts,
-)
-
 # insert into reports
-reports = [
-    (19, "2026-10-05 06:40"),
-    (20, "2026-10-05 06:45"),
-    (21, "2026-10-05 06:50")
+REPORTS = [
+    (1, "2026-10-05 06:40"),
+    (2, "2026-10-05 06:45"),
+    (3, "2026-10-05 06:50")
 ]
 
-cur.executemany(
-    "INSERT INTO reports(shift_id, created_at) VALUES (?, ?)",
-    reports,
-)
-
 # insert into report items
-report_items = [
+REPORT_ITEMS = [
     # Linda's report (report 1)
     (1, "Skin", "Redness on sacrum, repositioned q2h, monitor", 1),
     (1, "Nutrition", "Tolerated well, no residual", 3),
@@ -99,10 +79,35 @@ report_items = [
 
 ]
 
-cur.executemany(
-    "INSERT INTO report_items(report_id, category, description, urgency) VALUES (?, ?, ?, ?)",
-    report_items,
-)
+class Command(BaseCommand):
+    help = "Reset database to demo data"
 
-conn.commit()
-conn.close()
+    def handle(self, *args, **options):
+        Nurse.objects.all().delete()
+        Patient.objects.all().delete()
+
+        #nurses and patienst
+        nurses = [Nurse.objects.create(name=n, credential=c) for n, c in NURSES]
+
+        patients = [Patient.objects.create(name=p[0], adls=p[1], continence=p[2], 
+                    diet=p[3], code_status=p[4], allergies=p[5])
+                    for p in PATIENTS]
+
+        #shifts
+        for nurse_num, patient_num, day, shift_type in SHIFTS:
+            Shift.objects.create(nurse=nurses[nurse_num - 1],
+                                patient=patients[patient_num - 1],
+                                day=day, shift_type=shift_type)
+
+        #reports
+        reports = []
+        for patient_num, written_at in REPORTS:
+            shift = Shift.objects.get(patient=patients[patient_num - 1], day="Sun", shift_type="night")
+            created_at = timezone.make_aware(datetime.strptime(written_at, "%Y-%m-%d %H:%M"))
+            reports.append(Report.objects.create(shift=shift, created_at=created_at))
+
+        #items
+        for report_num, category, description, urgency in REPORT_ITEMS:
+            reports[report_num - 1].add_item(category, description, urgency)
+
+        self.stdout.write(self.style.SUCCESS("demo data seeded"))
