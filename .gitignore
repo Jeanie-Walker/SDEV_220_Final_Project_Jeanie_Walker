@@ -20,3 +20,5 @@ test_window.py
 
 # secrets
 .env
+
+db.sqlite3
