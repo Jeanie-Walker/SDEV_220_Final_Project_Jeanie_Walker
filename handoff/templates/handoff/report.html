@@ -23,14 +23,20 @@
             <div class="text-start mt-4">
                 <h2 class="h5">Items: {{ draft|length }}</h2>
                     {% for item in draft %}
-                        <p class="mb-1">
-                            {% if item.urgency == 1 %}Urgent
-                            {% elif item.urgency == 2 %}Do today
-                            {% else %}FYI
-                            {% endif %}- 
-                            <strong>{{ item.category }}:</strong> {{ item.description }}
-                        </p>
-                        {% empty %}
+                        <div class="d-flex justify-content-between align-items-center mb-1">   
+                            <p class="mb-0">
+                                {% if item.urgency == 1 %}Urgent
+                                {% elif item.urgency == 2 %}Do today
+                                {% else %}FYI
+                                {% endif %}
+                                - <strong>{{ item.category }}:</strong> {{ item.description }}
+                            </p>
+                            <form method="post">                                              
+                                {% csrf_token %}
+                                <button name="remove" value="{{ forloop.counter0 }}" class="btn btn-sm btn-outline-danger">Remove</button>
+                            </form>
+                        </div>
+                    {% empty %}
                         <p>No items yet</p>
                     {% endfor %}
             </div>

@@ -55,6 +55,11 @@ def report_view(request):
     draft = request.session.get("draft", [])
 
     if request.method == "POST":
+        if "remove" in request.POST:
+            index = int(request.POST["remove"])
+            draft.pop(index)
+            request.session["draft"] = draft
+            return redirect("report")
         form = ReportItemForm(request.POST)
         if form.is_valid():
             category = form.cleaned_data["category"]
