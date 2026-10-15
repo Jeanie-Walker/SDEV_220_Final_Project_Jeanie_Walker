@@ -7,4 +7,5 @@ urlpatterns = [
     path("patient/", views.patient_view, name="patient"),
     path("report/", views.report_view, name="report"),
     path("preview/", views.preview_view, name="preview"),
+    path("save/", views.save_view, name="save"),
 ]

@@ -4,6 +4,8 @@ from .forms import LoginForm, ReportItemForm
 
 from .models import Shift, Report, URGENCY_LABELS
 
+from django.utils import timezone
+
 
 def login_view(request):
     if request.method == "POST":
@@ -99,3 +101,29 @@ def preview_view(request):
     return render(request, "handoff/preview.html", {"shift": shift, "sections": sections})
 
     
+def save_view(request):
+    if request.method != "POST":
+        return redirect("preview")
+
+    nurse_id = request.session.get("nurse_id")
+    day = request.session.get("day")
+    if not nurse_id or not day:
+        return redirect("login")
+
+    shift = Shift.objects.filter(nurse_id=nurse_id, day=day).first()
+    if not shift:
+        return redirect("patient")
+
+    draft = request.session.get("draft", [])
+    if not draft:
+        return redirect("report")
+
+    if Report.objects.filter(shift=shift).exists():
+        return redirect("patient")
+
+    report = Report.objects.create(shift=shift, created_at=timezone.now())
+    for item in draft:
+        report.add_item(item["category"], item["description"], item["urgency"])
+
+    request.session["draft"] = []
+    return redirect("patient")

@@ -20,6 +20,10 @@
             </div>
             {% endfor %}
             <a href="{% url 'report' %}" class="btn btn-primary w-100 mt-3">Edit</a>
+            <form method="post" action="{% url 'save' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success w-100 mt-2">Save report</button>
+            </form>
         </div>
     </div>
 </div>
