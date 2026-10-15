@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 
-from .forms import LoginForm
+from .forms import LoginForm, ReportItemForm
 
 from .models import Shift, Report, URGENCY_LABELS
 
@@ -40,3 +40,30 @@ def patient_view(request):
             sections.append((URGENCY_LABELS[urgency], items))
     
     return render(request, "handoff/patient.html", {"shift": shift, "sections": sections, "report": report})
+
+
+def report_view(request):
+    nurse_id = request.session.get("nurse_id")
+    day = request.session.get("day")
+    if not nurse_id or not day:
+        return redirect("login")
+    shift = Shift.objects.filter(nurse_id=nurse_id, day=day).first()
+        
+    if not shift:
+        return redirect("patient")
+
+    draft = request.session.get("draft", [])
+
+    if request.method == "POST":
+        form = ReportItemForm(request.POST)
+        if form.is_valid():
+            category = form.cleaned_data["category"]
+            description = form.cleaned_data["description"]
+            urgency = int(form.cleaned_data["urgency"])
+            draft.append({"category": category, "description": description, "urgency": urgency})
+            request.session["draft"] = draft
+            return redirect("report")
+    else:
+        form = ReportItemForm()
+        
+    return render(request, "handoff/report.html", {"form": form, "draft": draft, "shift": shift})
