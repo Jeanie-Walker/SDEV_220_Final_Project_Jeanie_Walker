@@ -1,0 +1,27 @@
+{% extends "handoff/base.html" %}
+
+{% block content %}
+
+<div class="text-light text-center">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            <h1 class="fw-bold">Preview report for {{shift.patient.name}}</h1>
+            
+            {% for label, items in sections %}
+            <div class="card mb-3 text-start">
+                <div class="card-header">{{ label }}</div>
+                <div class="card-body">
+                    {% for item in items %}
+                    <p class="mb-1"><strong>{{ item.category }}:</strong> {{ item.description}}</p>
+                    {% empty %}
+                    <p class="mb-0">None</p>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+            <a href="{% url 'report' %}" class="btn btn-primary w-100 mt-3">Edit</a>
+        </div>
+    </div>
+</div>
+
+{% endblock %} 

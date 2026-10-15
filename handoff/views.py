@@ -72,3 +72,30 @@ def report_view(request):
         form = ReportItemForm()
         
     return render(request, "handoff/report.html", {"form": form, "draft": draft, "shift": shift})
+
+def preview_view(request):
+    nurse_id = request.session.get("nurse_id")
+    day = request.session.get("day")
+    if not nurse_id or not day:
+        return redirect("login")
+    shift = Shift.objects.filter(nurse_id=nurse_id, day=day).first()
+            
+    if not shift:
+        return redirect("patient")
+    
+    draft = request.session.get("draft", [])
+    if not draft:
+        return redirect("report")
+
+    groups = {1: [], 2: [], 3: []}
+    for item in draft:
+        groups[item["urgency"]].append(item)
+
+    sections = []
+    
+    for urgency, items in groups.items():
+        sections.append((URGENCY_LABELS[urgency], items))
+
+    return render(request, "handoff/preview.html", {"shift": shift, "sections": sections})
+
+    
