@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 
 from .forms import LoginForm
 
-from .models import Shift
+from .models import Shift, Report, URGENCY_LABELS
 
 
 def login_view(request):
@@ -31,4 +31,12 @@ def patient_view(request):
     if not shift:
         return render(request, "handoff/no_shift.html", {"day": day})
     
-    return render(request, "handoff/patient.html", {"shift": shift})
+    report = Report.objects.filter(shift__patient=shift.patient).order_by("-created_at").first()
+    sections = []
+
+    if report:
+        groups = report.items_by_urgency()
+        for urgency, items in groups.items():
+            sections.append((URGENCY_LABELS[urgency], items))
+    
+    return render(request, "handoff/patient.html", {"shift": shift, "sections": sections, "report": report})

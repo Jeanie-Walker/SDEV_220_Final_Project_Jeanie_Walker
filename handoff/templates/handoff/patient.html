@@ -11,10 +11,29 @@
             <p><strong>Diet: </strong>{{ shift.patient.diet }}</p>
             <p><strong>Code Status: </strong>{{ shift.patient.code_status }}</p> 
             <p><strong>Allergies: </strong>{{ shift.patient.allergies }}</p>
+
+            {% if report %}
+            <h2 class="h5">Last report: {{ report.created_at }}</h2>
+            {% for label, items in sections %}
+            <div class="card mb-3 text-start">
+                <div class="card-header">{{ label }}</div>
+                <div class="card-body">
+                    {% for item in items %}
+                    <p class="mb-1"><strong>{{ item.category }}:</strong> {{ item.description}}</p>
+                    {% empty %}
+                    <p class="mb-0">None</p>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p><strong>No previous report.</strong></p>
+
+            {% endif %}
+
             <a href="{% url 'login' %}" class="btn btn-primary">Back to login</a>
         </div>
     </div>
 </div>
-
 
 {% endblock %} 
