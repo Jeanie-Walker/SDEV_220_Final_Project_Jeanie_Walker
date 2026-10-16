@@ -127,3 +127,7 @@ def save_view(request):
 
     request.session["draft"] = []
     return redirect("patient")
+
+def logout_view(request):
+    request.session.flush()
+    return redirect("login")

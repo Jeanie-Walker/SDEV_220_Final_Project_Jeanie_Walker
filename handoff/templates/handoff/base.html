@@ -11,7 +11,14 @@
     <nav class="navbar bg-body-tertiary border-bottom mb-4">
         <div class="container">
             <span class="navbar-brand fw-bold text-primary">Next Shift</span>
-            {% block nav_right %}{% endblock %}
+            {% block nav_right %}
+            {% if request.session.nurse_id %}
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-secondary btn-sm">Log Out</button>
+            </form>
+            {% endif %}
+            {% endblock %}
         </div>
     </nav>
 
