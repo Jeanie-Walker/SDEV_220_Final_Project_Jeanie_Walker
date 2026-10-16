@@ -14,7 +14,7 @@ Report covers things that you want the next shift to know quickly without having
  
 ## Built with
  
-- Python
+- Python 3.10+
 - Django
 - Bootstrap
 - SQLite
