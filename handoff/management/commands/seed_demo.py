@@ -2,6 +2,7 @@ from datetime import datetime
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from handoff.models import Nurse, Patient, Shift, Report
+from django.contrib.sessions.models import Session
 
 
 # insert into nurses
@@ -85,6 +86,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         Nurse.objects.all().delete()
         Patient.objects.all().delete()
+        Session.objects.all().delete()
 
         #nurses and patienst
         nurses = [Nurse.objects.create(name=n, credential=c) for n, c in NURSES]
