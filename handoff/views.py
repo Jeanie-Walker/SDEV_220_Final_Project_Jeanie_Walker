@@ -6,6 +6,8 @@ from datetime import date, time, datetime, timedelta
 
 DEMO_DATES = {"Mon": date(2026, 10, 5), "Tue": date(2026, 10, 6), "Wed": date(2026, 10, 7)}
 
+DAY_ORDER = ["Sun", "Mon", "Tue", "Wed"]
+
 def login_view(request):
     if request.method == "POST":
         form = LoginForm(request.POST)
@@ -29,9 +31,21 @@ def patient_view(request):
         return redirect("login")
     
     shift = Shift.objects.filter(nurse_id=nurse_id, day=day).first()
+
     
     if not shift:
         return render(request, "handoff/no_shift.html", {"day": day})
+
+    if shift.shift_type == "day":
+        prev_day = DAY_ORDER[DAY_ORDER.index(shift.day) - 1]
+        prev_type = "night"
+
+    else:
+        prev_day = shift.day
+        prev_type = "day"
+
+    prev_shift = Shift.objects.filter(patient=shift.patient, day=prev_day, shift_type=prev_type).first()
+    missed = prev_shift is not None and not Report.objects.filter(shift=prev_shift).exists()
     
     report = Report.objects.filter(shift__patient=shift.patient).order_by("-created_at").first()
     sections = []
@@ -41,7 +55,7 @@ def patient_view(request):
         for urgency, items in groups.items():
             sections.append((URGENCY_LABELS[urgency], items))
     
-    return render(request, "handoff/patient.html", {"shift": shift, "sections": sections, "report": report})
+    return render(request, "handoff/patient.html", {"shift": shift, "sections": sections, "report": report, "missed": missed})
 
 
 def report_view(request):

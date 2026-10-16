@@ -12,6 +12,12 @@
             <p><strong>Code Status: </strong>{{ shift.patient.code_status }}</p> 
             <p><strong>Allergies: </strong>{{ shift.patient.allergies }}</p>
 
+            {% if missed %}
+            <div class="alert alert-warning text-start">
+                No report from previous shift, showing last available report.
+            </div>
+            {% endif %}
+
             {% if report %}
             <h2 class="h5">Last report: {{ report.created_at }}</h2>
             {% for label, items in sections %}
@@ -29,6 +35,7 @@
             {% else %}
             <p><strong>No previous report.</strong></p>
             {% endif %}
+
             <a href="{% url 'report' %}" class="btn btn-primary">Start report</a>
         </div>
     </div>
