@@ -1,14 +1,19 @@
+"""Views for Next Shift: login, patient, report, preview, save, and logout"""
+
 from django.shortcuts import render, redirect
 from .forms import LoginForm, ReportItemForm
 from .models import Shift, Report, URGENCY_LABELS
 from django.utils import timezone
 from datetime import date, time, datetime, timedelta
 
+# set dates for report entry in demo to match timeline of seeded dates
 DEMO_DATES = {"Mon": date(2026, 10, 5), "Tue": date(2026, 10, 6), "Wed": date(2026, 10, 7)}
 
+# used to find previous day to check for missed report
 DAY_ORDER = ["Sun", "Mon", "Tue", "Wed"]
 
 def login_view(request):
+    """Login screen with nurse and day selection"""
     if request.method == "POST":
         form = LoginForm(request.POST)
         if form.is_valid():
@@ -25,6 +30,7 @@ def login_view(request):
 
 
 def patient_view(request):
+    """Last patient report view with patient card and report items listed by urgency"""
     nurse_id = request.session.get("nurse_id")
     day = request.session.get("day")
     if not nurse_id or not day:
@@ -36,7 +42,8 @@ def patient_view(request):
     if not shift:
         return render(request, "handoff/no_shift.html", {"day": day})
 
-    if shift.shift_type == "day":
+    # assigns prev shift based on current shift being day or night
+    if shift.shift_type == "day": 
         prev_day = DAY_ORDER[DAY_ORDER.index(shift.day) - 1]
         prev_type = "night"
 
@@ -44,6 +51,7 @@ def patient_view(request):
         prev_day = shift.day
         prev_type = "day"
 
+    # Checks for previous shift report and returns true if shift exists but has no report
     prev_shift = Shift.objects.filter(patient=shift.patient, day=prev_day, shift_type=prev_type).first()
     missed = prev_shift is not None and not Report.objects.filter(shift=prev_shift).exists()
     
@@ -55,6 +63,7 @@ def patient_view(request):
         for urgency, items in groups.items():
             sections.append((URGENCY_LABELS[urgency], items))
 
+    # allows nurse to enter addendum to report only if still in same session, otherwise report is locked
     my_report = Report.objects.filter(shift=shift).first()
     can_add = my_report is not None and request.session.get("report_id") == my_report.id
     locked = my_report is not None and not can_add
@@ -63,6 +72,7 @@ def patient_view(request):
 
 
 def report_view(request):
+    """Report form view with boxes for category, description, and urgency"""
     nurse_id = request.session.get("nurse_id")
     day = request.session.get("day")
     if not nurse_id or not day:
@@ -94,6 +104,7 @@ def report_view(request):
     return render(request, "handoff/report.html", {"form": form, "draft": draft, "shift": shift})
 
 def preview_view(request):
+    """Preview of current report"""
     nurse_id = request.session.get("nurse_id")
     day = request.session.get("day")
     if not nurse_id or not day:
@@ -120,6 +131,7 @@ def preview_view(request):
 
     
 def save_view(request):
+    """Saves report draft as a new report or addnedum to a report then redirects to patient view"""
     if request.method != "POST":
         return redirect("preview")
 
@@ -138,6 +150,7 @@ def save_view(request):
 
     existing = Report.objects.filter(shift=shift).first()
 
+    # if report exists for current shift, only allows adding if it was saved in the current session
     if existing: 
         if request.session.get("report_id") == existing.id:
             report = existing
@@ -145,6 +158,7 @@ def save_view(request):
             return redirect("patient")
     else:
         report_date = DEMO_DATES[shift.day]
+        # report time for day is 6:45 PM, night shift is 6:45 AM the next day
         if shift.shift_type == "day":
             report_time = datetime.combine(report_date, time(18, 45))
         else:
@@ -159,5 +173,6 @@ def save_view(request):
     return redirect("patient")
 
 def logout_view(request):
+    """Ends the current session and returns to login"""
     request.session.flush()
     return redirect("login")

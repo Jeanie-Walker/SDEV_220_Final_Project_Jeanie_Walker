@@ -1,3 +1,5 @@
+"""Demo data loaded to the database, can be reloaded to reset demo"""
+
 from datetime import datetime
 from django.core.management.base import BaseCommand
 from django.utils import timezone
@@ -5,7 +7,7 @@ from handoff.models import Nurse, Patient, Shift, Report
 from django.contrib.sessions.models import Session
 
 
-# insert into nurses
+# Nurse name, credential
 NURSES = [
     ("Francis Smith", "RN"),
     ("Alex Walls", "LPN"),
@@ -17,14 +19,14 @@ NURSES = [
     ("Ayesha Johnson", "RN"),
 ]
 
-# insert into patients
+# Patient name, ADL status, continence status, diet type, code status, allergies
 PATIENTS = [
     ("Linda Williams", "Total assist", "Incontinent of B&B", "Enteral feeds, NPO", "DNR", "NKA"),
     ("Sherry Banks", "Mod assist", "Incontinent of bladder", "Mech soft NAS", "Full Code", "Statins"),
     ("Bethany Carter", "Mod(toileting, bathing, mobility) min(eating)", "Continent", "Regular", "Full Code", "Penicillin")
 ]
 
-# insert into shifts
+# Assigned shifts using nurse number, patient number, what day the nurse has the patient, and the shift assigned
 SHIFTS = [
     (1, 1, "Mon", "day"),
     (1, 1, "Tue", "day"),
@@ -49,14 +51,14 @@ SHIFTS = [
     (8, 3, "Sun", "night")
 ]
 
-# insert into reports
+# patient number, date, and time for Sunday night demo data
 REPORTS = [
-    (1, "2026-10-05 06:40"),
+    (1, "2026-10-05 06:45"),
     (2, "2026-10-05 06:45"),
-    (3, "2026-10-05 06:50")
+    (3, "2026-10-05 06:45")
 ]
 
-# insert into report items
+# demo patient report with report number, category, description and urgency
 REPORT_ITEMS = [
     # Linda's report (report 1)
     (1, "Skin", "Redness on sacrum, repositioned q2h, monitor", 1),
@@ -84,31 +86,33 @@ class Command(BaseCommand):
     help = "Reset database to demo data"
 
     def handle(self, *args, **options):
+        """Deletes all demo data and sessions, then reloads with starting seed data"""
+        # deleting nurses and patients removes their shifts, reports, and items
         Nurse.objects.all().delete()
         Patient.objects.all().delete()
         Session.objects.all().delete()
 
-        #nurses and patienst
+        # nurses and patients
         nurses = [Nurse.objects.create(name=n, credential=c) for n, c in NURSES]
 
         patients = [Patient.objects.create(name=p[0], adls=p[1], continence=p[2], 
                     diet=p[3], code_status=p[4], allergies=p[5])
                     for p in PATIENTS]
 
-        #shifts
+        # shifts
         for nurse_num, patient_num, day, shift_type in SHIFTS:
             Shift.objects.create(nurse=nurses[nurse_num - 1],
                                 patient=patients[patient_num - 1],
                                 day=day, shift_type=shift_type)
 
-        #reports
+        # reports
         reports = []
         for patient_num, written_at in REPORTS:
             shift = Shift.objects.get(patient=patients[patient_num - 1], day="Sun", shift_type="night")
             created_at = timezone.make_aware(datetime.strptime(written_at, "%Y-%m-%d %H:%M"))
             reports.append(Report.objects.create(shift=shift, created_at=created_at))
 
-        #items
+        # items
         for report_num, category, description, urgency in REPORT_ITEMS:
             reports[report_num - 1].add_item(category, description, urgency)
 

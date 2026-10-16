@@ -1,8 +1,13 @@
+"""Forms for Next Shift: login and report"""
+
 from django import forms
 from .models import Nurse, CATEGORIES, URGENCY_LABELS
 
-DEMO_DAYS =("Mon", "Tue", "Wed")
+# days to choose from in the app demo
+DEMO_DAYS = ("Mon", "Tue", "Wed")
+
 class LoginForm(forms.Form):
+    """Login form to select day and nurse from dropdown list to see shift assignment"""
     nurse = forms.ModelChoiceField(
         queryset=Nurse.objects.order_by("name"),
         empty_label="Select your name",
@@ -15,6 +20,7 @@ class LoginForm(forms.Form):
     )
 
 class ReportItemForm(forms.Form):
+    """Report form for adding items to the current report one at a time"""
     category = forms.ChoiceField(
         choices=[("", "Select category")] + [(c, c) for c in CATEGORIES],
         widget=forms.Select(attrs={"class": "form-select"}),
