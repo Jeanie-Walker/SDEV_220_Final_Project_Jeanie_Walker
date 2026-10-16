@@ -1,11 +1,10 @@
 from django.shortcuts import render, redirect
-
 from .forms import LoginForm, ReportItemForm
-
 from .models import Shift, Report, URGENCY_LABELS
-
 from django.utils import timezone
+from datetime import date, time, datetime, timedelta
 
+DEMO_DATES = {"Mon": date(2026, 10, 5), "Tue": date(2026, 10, 6), "Wed": date(2026, 10, 7)}
 
 def login_view(request):
     if request.method == "POST":
@@ -14,6 +13,7 @@ def login_view(request):
             nurse = form.cleaned_data["nurse"]
             day = form.cleaned_data["day"]
             request.session["nurse_id"] = nurse.id
+            request.session["nurse_name"] = str(nurse)
             request.session["day"] = day
             return redirect("patient")
     else:
@@ -121,7 +121,13 @@ def save_view(request):
     if Report.objects.filter(shift=shift).exists():
         return redirect("patient")
 
-    report = Report.objects.create(shift=shift, created_at=timezone.now())
+    report_date = DEMO_DATES[shift.day]
+    if shift.shift_type == "day":
+        report_time = datetime.combine(report_date, time(18, 45))
+    else:
+        report_time = datetime.combine(report_date + timedelta(days=1), time(6, 45))
+
+    report = Report.objects.create(shift=shift, created_at=timezone.make_aware(report_time))
     for item in draft:
         report.add_item(item["category"], item["description"], item["urgency"])
 

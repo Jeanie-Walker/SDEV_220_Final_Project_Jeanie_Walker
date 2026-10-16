@@ -13,10 +13,13 @@
             <span class="navbar-brand fw-bold text-primary">Next Shift</span>
             {% block nav_right %}
             {% if request.session.nurse_id %}
-            <form method="post" action="{% url 'logout' %}">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-outline-secondary btn-sm">Log Out</button>
-            </form>
+            <div class="d-flex align-items-center">
+                <span class="navbar-text me-3">{{ request.session.nurse_name }} · {{ request.session.day }}</span>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">Log Out</button>
+                </form>
+            </div>
             {% endif %}
             {% endblock %}
         </div>
