@@ -6,14 +6,20 @@
     <div class="row justify-content-center">
         <div class="col-12 col-md-8 col-lg-6">
             <h1 class="fw-bold">{{shift.patient.name}}</h1>
-            <p><strong>ADLs: </strong>{{ shift.patient.adls }}</p>
-            <p><strong>Continence: </strong>{{ shift.patient.continence }}</p>
-            <p><strong>Diet: </strong>{{ shift.patient.diet }}</p>
-            <p><strong>Code Status: </strong>{{ shift.patient.code_status }}</p> 
-            <p><strong>Allergies: </strong>{{ shift.patient.allergies }}</p>
+            <div class="card mb-4 text-start glow-pink">
+                <div class="card-body">
+                    <div class="row row-cols-2 g-2">
+                        <div><div class="small text-body-secondary">ADLs</div>{{ shift.patient.adls }}</div>
+                        <div><div class="small text-body-secondary">Continence</div>{{ shift.patient.continence }}</div>
+                        <div><div class="small text-body-secondary">Diet</div>{{ shift.patient.diet }}</div>
+                        <div><div class="small fw-bold" style="color: #e645d1;">Code Status</div>{{ shift.patient.code_status }}</div>
+                        <div><div class="small fw-bold" style="color: #e645d1;">Allergies</div>{{ shift.patient.allergies }}</div>
+                    </div>
+                </div>
+            </div>
 
             {% if missed %}
-            <div class="alert alert-warning text-start">
+            <div class="alert alert-pink text-start">
                 No report from previous shift, showing last available report.
             </div>
             {% endif %}
@@ -21,8 +27,8 @@
             {% if report %}
             <h2 class="h5">Last report: {{ report.created_at }}</h2>
             {% for label, items in sections %}
-            <div class="card mb-3 text-start">
-                <div class="card-header">{{ label }}</div>
+            <div class="card mb-3 text-start {% if label == 'Urgent' %}glow-urgent{% elif label == 'Do today' %}glow-today{% else %}glow-fyi{% endif %}">
+                <div class="card-header {% if label == 'Urgent' %}text-bg-danger-subtle text-danger-emphasis{% elif label == 'Do today' %}text-bg-warning-subtle text-warning-emphasis{% else %}text-bg-success-subtle text-success-emphasis{% endif %}">{{ label }}</div>
                 <div class="card-body">
                     {% for item in items %}
                     <p class="mb-1"><strong>{{ item.category }}:</strong> {{ item.description}}</p>

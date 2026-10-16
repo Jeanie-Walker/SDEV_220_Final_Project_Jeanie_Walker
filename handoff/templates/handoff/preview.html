@@ -8,8 +8,8 @@
             <h1 class="fw-bold">Preview report for {{shift.patient.name}}</h1>
             
             {% for label, items in sections %}
-            <div class="card mb-3 text-start">
-                <div class="card-header">{{ label }}</div>
+            <div class="card mb-3 text-start {% if label == 'Urgent' %}glow-urgent{% elif label == 'Do today' %}glow-today{% else %}glow-fyi{% endif %}">
+                <div class="card-header {% if label == 'Urgent' %}text-bg-danger-subtle text-danger-emphasis{% elif label == 'Do today' %}text-bg-warning-subtle text-warning-emphasis{% else %}text-bg-success-subtle text-success-emphasis{% endif %}">{{ label }}</div>
                 <div class="card-body">
                     {% for item in items %}
                     <p class="mb-1"><strong>{{ item.category }}:</strong> {{ item.description}}</p>
