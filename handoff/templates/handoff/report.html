@@ -7,7 +7,7 @@
         <div class="col-12 col-md-8 col-lg-6">
             <h1 class="fw-bold">Report for {{shift.patient.name}}</h1>
             
-            <form method="post" novalidate>
+            <form method="post" novalidate class="text-start">
                 {% csrf_token %}
                 {% for field in form %}
                     <div class="mb-3">
@@ -40,7 +40,9 @@
                         <p>No items yet</p>
                     {% endfor %}
             </div>
+            {% if draft %}
             <a href="{% url 'preview' %}" class="btn btn-primary w-100 mt-3">Preview report</a>
+            {% endif %}
         </div>
     </div>
 </div>
