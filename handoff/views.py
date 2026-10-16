@@ -54,8 +54,12 @@ def patient_view(request):
         groups = report.items_by_urgency()
         for urgency, items in groups.items():
             sections.append((URGENCY_LABELS[urgency], items))
+
+    my_report = Report.objects.filter(shift=shift).first()
+    can_add = my_report is not None and request.session.get("report_id") == my_report.id
+    locked = my_report is not None and not can_add
     
-    return render(request, "handoff/patient.html", {"shift": shift, "sections": sections, "report": report, "missed": missed})
+    return render(request, "handoff/patient.html", {"shift": shift, "sections": sections, "report": report, "missed": missed, "can_add": can_add, "locked": locked})
 
 
 def report_view(request):
@@ -132,19 +136,25 @@ def save_view(request):
     if not draft:
         return redirect("report")
 
-    if Report.objects.filter(shift=shift).exists():
-        return redirect("patient")
+    existing = Report.objects.filter(shift=shift).first()
 
-    report_date = DEMO_DATES[shift.day]
-    if shift.shift_type == "day":
-        report_time = datetime.combine(report_date, time(18, 45))
+    if existing: 
+        if request.session.get("report_id") == existing.id:
+            report = existing
+        else:
+            return redirect("patient")
     else:
-        report_time = datetime.combine(report_date + timedelta(days=1), time(6, 45))
+        report_date = DEMO_DATES[shift.day]
+        if shift.shift_type == "day":
+            report_time = datetime.combine(report_date, time(18, 45))
+        else:
+            report_time = datetime.combine(report_date + timedelta(days=1), time(6, 45))
 
-    report = Report.objects.create(shift=shift, created_at=timezone.make_aware(report_time))
+        report = Report.objects.create(shift=shift, created_at=timezone.make_aware(report_time))
     for item in draft:
         report.add_item(item["category"], item["description"], item["urgency"])
 
+    request.session["report_id"] = report.id
     request.session["draft"] = []
     return redirect("patient")
 

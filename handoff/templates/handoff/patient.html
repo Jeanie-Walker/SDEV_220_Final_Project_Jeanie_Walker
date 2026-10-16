@@ -35,8 +35,13 @@
             {% else %}
             <p><strong>No previous report.</strong></p>
             {% endif %}
-
+            {% if locked %}
+            <p>Report already submitted for this shift.</p>
+            {% elif can_add %}
+            <a href="{% url 'report' %}" class="btn btn-primary">Add to report</a>
+            {% else %}
             <a href="{% url 'report' %}" class="btn btn-primary">Start report</a>
+            {% endif %}
         </div>
     </div>
 </div>
